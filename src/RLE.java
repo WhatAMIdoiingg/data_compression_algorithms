@@ -3,102 +3,157 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.io.IOException;
-
 import java.io.FileWriter;
 import java.io.BufferedWriter;
-public class RLE {
-    private static String Rle_for_grey(List<Integer> numbers) {
-        StringBuilder sb = new StringBuilder();
-        int count = 1;
 
-        for (int i = 1; i < numbers.size(); i++) {
-            if (numbers.get(i).equals(numbers.get(i - 1))) {
+public class RLE {
+
+    public static String RLE_decode(String encoded) {
+        StringBuilder decoded = new StringBuilder();
+        for (int i = 0; i < encoded.length(); i += 2) {
+            char count = encoded.charAt(i);
+            char character = encoded.charAt(i + 1);
+            for (int j = 0; j < (int) count; j++) {
+                decoded.append(character);
+            }
+        }
+        return decoded.toString();
+    }
+
+    public static StringBuilder RLE_all(String str) {
+        StringBuilder writer = new StringBuilder();
+        int count = 1; // Количество повторений символа
+        boolean less = false; // Флаг для обработки случая
+        boolean flag = false;
+        boolean flag2 = true;
+        for (int i = 0; i < str.length(); i++) {
+            if (i < str.length() - 1 && str.charAt(i) == str.charAt(i + 1) && count < 255) {
+                count++;
+                if (less && flag) {
+                    if (count >= 2 && flag2) {
+                        writer.append(str.charAt(i));
+                        flag2 = false;
+                    }
+                    count = 2;
+                    flag = false;
+                }
+            } else {
+                if (count < 3) {
+                    if (less) {
+                        writer.append(str.charAt(i));
+                        flag = true;
+                        flag2 = true;
+
+                    } else {
+                        writer.append((char) 0);
+                        flag = true;
+                        for (int j = 0; j < count; j++) {
+                            writer.append(str.charAt(i));
+                        }
+                        less = true;
+                    }
+                } else {
+                    if (less) {
+                        less = false;
+                        writer.append((char) 0);
+                    }
+                    writer.append((char) count);
+                    writer.append(str.charAt(i));
+                    count = 1;
+                }
+            }
+            if (less && i == str.length() - 1) {
+                less = false;
+                writer.append((char) 0);
+            }
+        }
+
+        return writer;
+    }
+
+    public static StringBuilder RLE_Coder(StringBuilder str) {
+        StringBuilder out = new StringBuilder();
+        StringBuilder alone = new StringBuilder();
+        int count = 0;
+        int i = 0;
+        for (i = 0; i < str.length() - 1; i++) {
+            if (str.charAt(i) == str.charAt(i + 1)) {
+                if (!alone.isEmpty()) {
+                    if (alone.length() > 2) {
+                        out.append((char) 0);
+                        out.append(alone);
+                        out.append((char) 0);
+                    } else {
+                        for (int j = 0; j < alone.length(); j++) {
+                           // out.append(1);
+                            out.append((char)1);
+                            out.append(alone.charAt(j));
+                        }
+                    }
+
+                    alone = new StringBuilder();
+                }
+                if (count == 0) {
+                    count++;
+                }
                 count++;
             } else {
-                sb.append(numbers.get(i - 1)).append(" ").append(count).append(" ");
-                count = 1;
+                if (count > 0) {//запись сокращенного фрагмента
+                    //out.append(count);
+                     out.append((char) count);
+                    count = 0;
+                    out.append(str.charAt(i));
+                } else {//обработка одиночного символа
+                    alone.append(str.charAt(i));
+                }
             }
         }
-
-        //  последнюю последовательность
-        if (!numbers.isEmpty()) {
-            sb.append(numbers.get(numbers.size() - 1)).append(" ").append(count);
-        }
-
-        return sb.toString().trim();
-    }
-
-
-
-    private static List<Integer> applyRLEDecompression(String rleCompressed) {
-        List<Integer> decompressedNumbers = new ArrayList<>();
-        Scanner scanner = new Scanner(rleCompressed);
-
-        while (scanner.hasNextInt()) {
-            int number = scanner.nextInt();
-            int count = scanner.nextInt();
-            for (int i = 0; i < count; i++) {
-                decompressedNumbers.add(number);
+        if (count > 0) {//запись сокращенного фрагмента
+            //out.append(count);
+             out.append((char) count);
+            count = 0;
+            out.append(str.charAt(i));
+        } else {//обработка одиночного символа
+            alone.append(str.charAt(i));
+            if (alone.length() > 2) {
+                out.append((char) 0);
+                out.append(alone);
+                out.append((char)0);
+                alone = new StringBuilder();
+            } else {
+                for (int j = 0; j < alone.length(); j++) {
+                    out.append((char)1);
+                    //out.append(1);
+                    out.append(alone.charAt(j));
+                }
             }
         }
-
-        scanner.close();
-        return decompressedNumbers;
+        return out;
     }
 
+    public static StringBuilder Decode_RLE(String encoded) {
+        StringBuilder decoded = new StringBuilder();
+        for (int i = 0; i < encoded.length(); i++) {
+            char currentChar = encoded.charAt(i);
+            if (currentChar == 0) {
+                // Если встретился символ со значением 0, пропускаем его и копируем следующие символы как есть
+                while (i < encoded.length() - 1 && encoded.charAt(i + 1) != 0) {
+                    i++;
+                    decoded.append(encoded.charAt(i));
 
-    public static void RLE_to_file(String inputString, String filePath) {
-        String compressedString = RLE(inputString);
-        writeToFile(compressedString, filePath);
-    }
-
-
-    private static String RLE(String str1) {
-        StringBuilder str = new StringBuilder();
-        for (int i = 0; i < str1.length(); i++) {
-            char ch = str1.charAt(i);
-            int count = 1;
-            while (i + 1 < str1.length() && str1.charAt(i + 1) == ch) {
-                i++;
-                count++;
-            }
-            if (count > 1) {
-                str.append(count + " ");
-            }
-            str.append(ch + " ");
-        }
-        return str.toString();
-    }
-
-    public static void D_RLE_to_file(String compressedString, String filePath) {
-        String decompressedString = RLE_decompress(compressedString);
-        writeToFile(decompressedString, filePath);
-    }
-
-    private static String RLE_decompress(String compressedString) {
-        StringBuilder str = new StringBuilder();
-        String[] parts = compressedString.split(" ");
-        for (int i = 0; i < parts.length; i++) {
-            if (parts[i].matches("\\d+")) {
-                int count = Integer.parseInt(parts[i]);
-                char ch = parts[i + 1].charAt(0);
-                for (int j = 0; j < count; j++) {
-                    str.append(ch);
                 }
                 i++;
             } else {
-                str.append(parts[i]);
+                // Если встретилась цифра, то следующий символ повторяется указанное количество раз
+                int repeatCount = (currentChar);
+                i++;
+                char repeatedChar = encoded.charAt(i);
+                for (int j = 0; j < repeatCount; j++) {
+                    decoded.append( repeatedChar);
+
+                }
             }
         }
-        return str.toString();
+        return decoded;
     }
-
-    private static void writeToFile(String content, String filePath) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            writer.write(content);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

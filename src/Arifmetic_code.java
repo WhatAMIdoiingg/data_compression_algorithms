@@ -28,13 +28,15 @@ public class Arifmetic_code {// double
        // System.out.println("Result: " + encodedValue);
         return encodedValue;
     }
-    public static void getAlphabet(String str, ArrayList<Character> a) { // для арифметического кодирования
+    public static ArrayList<Character> getAlphabet(String str) { // для арифметического кодирования
+         ArrayList<Character> a = new ArrayList<>();
         for (int i = 0; i < str.length(); i++) {
             if (!a.contains(str.charAt(i))) {
                 a.add(str.charAt(i));
             }
             Collections.sort(a);
         }
+        return a;
     }
 
     public static HashMap<Character, Double> get_rate(String str) {
